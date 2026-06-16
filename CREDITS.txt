@@ -1,0 +1,62 @@
+========================================================================
+                      CONVERTISSEUR UNIVERSEL PDF
+========================================================================
+
+Développé par : Cyrille Coutte
+Année de création : 2026
+
+Ce logiciel est fourni "tel quel", sans garantie d'aucune sorte, 
+explicite ou implicite. 
+
+========================================================================
+                      BIBLIOTHÈQUES OPEN SOURCE
+========================================================================
+Ce logiciel a été rendu possible grâce à l'utilisation des bibliothèques 
+Open Source suivantes. Un grand merci à leurs créateurs et contributeurs :
+
+1. Python
+   Licence : Python Software Foundation (PSF) License
+   Copyright (c) Python Software Foundation.
+
+2. CustomTkinter (Interface Graphique)
+   Licence : MIT License
+   Copyright (c) Tom Schimansky
+   Lien : https://github.com/TomSchimansky/CustomTkinter
+
+3. python-docx (Lecture des fichiers Word)
+   Licence : MIT License
+   Copyright (c) Steve Canny et contributeurs.
+   Lien : https://github.com/python-openxml/python-docx
+
+4. openpyxl (Lecture des fichiers Excel)
+   Licence : MIT License
+   Copyright (c) 2010 openpyxl / Eric Gazoni, Charlie Clark
+   Lien : https://foss.heptapod.net/openpyxl/openpyxl
+
+5. ReportLab (Génération des PDF)
+   Licence : BSD License
+   Copyright (c) 2000-2023, ReportLab Europe Ltd., ReportLab Inc.
+   Lien : https://www.reportlab.com/
+
+6. PyInstaller (Compilation de l'exécutable)
+   Licence : GNU General Public License (GPL) version 2.0 
+   avec "Bootloader Exception" (autorisant la distribution compilée).
+   Copyright (c) PyInstaller Development Team.
+   Lien : https://pyinstaller.org/
+
+========================================================================
+                      MENTIONS LÉGALES DES LICENCES
+========================================================================
+
+--- RÉSUMÉ DE LA LICENCE MIT ---
+L'autorisation est accordée, gracieusement, à toute personne obtenant une 
+copie de ce logiciel et des fichiers de documentation associés, de 
+commercialiser le logiciel sans restriction, y compris, sans s'y limiter, 
+les droits d'utiliser, de copier, de modifier, de fusionner, de publier, 
+de distribuer, de sous-licencier et/ou de vendre des copies du Logiciel, 
+sous réserve de l'inclusion de la présente notification de copyright.
+
+--- RÉSUMÉ DE LA LICENCE BSD ---
+La redistribution et l'utilisation sous forme source et binaire, avec ou 
+sans modification, sont autorisées sous réserve de conserver les mentions 
+de droits d'auteur et les conditions de la licence d'origine.
