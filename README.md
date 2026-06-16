@@ -1,21 +1,23 @@
-# 📄 Convertisseur Universel vers PDF
+# 📄 Universal PDF Converter
 
-Un outil de bureau simple, rapide et doté d'une interface graphique moderne pour convertir massivement vos fichiers Word, Excel et Texte en PDF, le tout localement sans dépendre d'une connexion internet.
+A modular, lightweight Python tool that batch-converts Word (`.docx`), Excel (`.xlsx`), and Text (`.txt`) files into PDFs. The application automatically creates a "mirror" folder containing all the generated PDFs while strictly preserving your original directory structure.
 
-## ✨ Fonctionnalités Principales
+## ✨ Key Features
 
-* **Multi-Formats :** Prend en charge les fichiers `.txt`, `.docx` (Word) et `.xlsx` (Excel).
-* **Interface Moderne :** Une interface utilisateur élégante avec mode sombre, développée avec `customtkinter`.
-* **Structure Conservée :** Ne pollue pas vos dossiers d'origine. Le logiciel crée automatiquement un dossier miroir (ex: `MonDossier_PDF`) contenant toute l'arborescence convertie.
-* **100% Privé et Hors Ligne :** Aucune donnée n'est envoyée sur le cloud. La conversion se fait entièrement sur votre machine.
+* **Native Conversion:** Uses COM interfaces (`win32com`, `docx2pdf`) to interact directly with Microsoft Office, ensuring 100% formatting accuracy for Word and Excel files.
+* **Batch Processing:** Scans an entire directory tree and converts all supported files automatically.
+* **Non-Destructive:** Original files are never modified. The script builds a separate `_PDF` directory alongside your source folder.
+* **Modular Architecture:** Clean, maintainable code split across specialized configuration, generation, and execution files.
 
-## 🛠️ Prérequis et Installation (Mode Développeur)
+## ⚠️ Prerequisites
 
-Si vous souhaitez faire tourner le code source directement en Python, vous aurez besoin de **Python 3.x** installé sur votre machine.
+* **Operating System:** Windows (Strictly required for Microsoft COM integration).
+* **Software:** Microsoft Office (Word and Excel) must be physically installed on the machine.
+* **Python:** Python 3.x.
 
-1.  Clonez ou téléchargez ce dépôt.
-2.  Ouvrez un terminal dans le dossier du projet.
-3.  Installez les dépendances requises à l'aide de `pip` :
+## 🛠️ Installation
 
-```bash
-pip install customtkinter python-docx openpyxl reportlab
+1. Clone this repository to your local machine:
+   ```bash
+   git clone [https://github.com/your-username/universal-pdf-converter.git](https://github.com/your-username/universal-pdf-converter.git)
+   cd universal-pdf-converter
