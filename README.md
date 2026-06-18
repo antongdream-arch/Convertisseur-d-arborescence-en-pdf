@@ -27,7 +27,7 @@ A powerful, modular, and lightweight Python tool that batch-converts Word (`.doc
    2.Install the required Python dependencies:
    pip install reportlab docx2pdf pywin32
 
-##🚀 Usage & Commands
+## 🚀 Usage & Commands
 Run the main script from your terminal. The only mandatory argument is the path to your source folder.
 
 1. Basic Conversion (Automatic Output):
