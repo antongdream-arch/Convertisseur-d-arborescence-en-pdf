@@ -24,6 +24,7 @@ A powerful, modular, and lightweight Python tool that batch-converts Word (`.doc
    ```bash
    git clone [https://github.com/your-username/universal-pdf-converter.git](https://github.com/your-username/universal-pdf-converter.git)
    cd universal-pdf-converter
+   
    2.Install the required Python dependencies:
    pip install reportlab docx2pdf pywin32
 
