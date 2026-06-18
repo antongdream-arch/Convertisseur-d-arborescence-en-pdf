@@ -47,7 +47,7 @@ Forces detailed logging and saves the log file to a specific location.
 python main.py "C:\Path\To\Your\Documents" --debug --logfile "C:\Logs\conversion_trace.txt"
 
 5. Combined Power Command:
-python main.py "C:\Source" --output "E:\Destination" --ignore-docx --debug
+python main.py --folder "C:\Chemin\Vers\Vos\Documents" --output "D:\Mes_Sauvegardes_PDF" --logdir "D:\Mes_Archives\Logs"
 
 6.Display Help Menu:
 python main.py -h
