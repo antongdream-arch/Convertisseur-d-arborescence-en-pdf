@@ -7,7 +7,8 @@ PDF_MARGIN_LEFT = 72
 PDF_MARGIN_BOTTOM = 72
 PDF_LINE_HEIGHT = 15
 
-
+# TODO change filename
+# TODO add comments with """
 def setup_configurable_logger(debug_mode=False):
     # 1. Création du Logger principal
     logger = logging.getLogger("UniversalConverter")

@@ -19,6 +19,7 @@ def docx_converter(file, input_folder, output_folder):
         convert(str(file), str(pdf_file))
         logging.info(f"PDF generated successfully (Word): {pdf_file}")
     except Exception as e:
+        # TODO stop program execution if an error occurs
         logging.error(f"Failed to convert Word file {file}: {e}")
 
 

@@ -11,6 +11,9 @@ def scanner(input_folder):
 
 def convert_files():
     parser = argparse.ArgumentParser()
+    # TODO why --debug or folder ?
+    # TODO Add output directory
+    # TODO Add logfile argument
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("folder")
     args = parser.parse_args()
@@ -26,6 +29,7 @@ def convert_files():
 
     output_folder = input_folder.with_name(input_folder.name + "_PDF")
 
+    # TODO You don't need to sort to get number of files
     valid_files = sorted([f for f in scanner(input_folder) if f.is_file() and f.stat().st_size > 0])
     total_files = len(valid_files)
 
@@ -46,11 +50,14 @@ def convert_files():
         files_processed += 1
         percent = int((files_processed / total_files) * 100)
 
+        # TODO why you don't use logging system
         sys.stdout.write(f"\rProgress: {files_processed} / {total_files} files ({percent}%)")
         sys.stdout.flush()
 
+    # TODO why you don't use logging system
     print("\n\nConversion Complete!")
 
 
 if __name__ == "__main__":
+    # TODO you need to parse arguments at the beginning
     convert_files()

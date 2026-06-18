@@ -21,3 +21,4 @@ A modular, lightweight Python tool that batch-converts Word (`.docx`), Excel (`.
    ```bash
    git clone [https://github.com/your-username/universal-pdf-converter.git](https://github.com/your-username/universal-pdf-converter.git)
    cd universal-pdf-converter
+TODO UPDATE Readme with library to install
