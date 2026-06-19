@@ -5,16 +5,40 @@ import os
 import shutil
 import time
 from pathlib import Path
-from converters import txt_converter, docx_converter, xlsx_converter
+
+
+from converters import txt_converter, docx_converter, doc_converter, xlsx_converter, copy_file
 
 
 def scanner(_input_folder):
-    """scan for files in input_folder"""
+    """
+    Recursively scans the input folder to find all items it contains.
+
+    :param _input_folder: The path of the root folder to scan.
+    :type _input_folder: Path
+    :return: An iterator yielding the paths of all found elements (files and folders).
+    :rtype: generator
+    """
     return _input_folder.rglob("*")
 
 
 def convert_files(_input_folder, _output_folder):
+    """
+    Filters, sorts, and converts valid files from the input folder to the output folder.
+
+    This function ignores subdirectories and empty files. It checks the extension
+    of each file and calls the appropriate converter (.txt, .docx, .doc, .xlsx).
+    Overall progress is recorded in the logs.
+
+    :param _input_folder: The root folder containing the original files to process.
+    :type _input_folder: Path
+    :param _output_folder: The destination folder where the generated PDFs will be saved.
+    :type _output_folder: Path
+    :return: No value returned.
+    :rtype: None
+    """
     valid_files = sorted([f for f in scanner(_input_folder) if f.is_file() and f.stat().st_size > 0])
+
     total_files = len(valid_files)
 
     if total_files == 0:
@@ -27,13 +51,22 @@ def convert_files(_input_folder, _output_folder):
         if file.suffix.lower() == ".txt":
             logging.info(f"txt_converter({file}, {_input_folder}, {_output_folder})")
             txt_converter(file, _input_folder, _output_folder)
+
         elif file.suffix.lower() == ".docx":
             logging.info(f"docx_converter({file}, {_input_folder}, {_output_folder})")
             docx_converter(file, _input_folder, _output_folder)
 
-        elif file.suffix.lower() == ".xlsx":
+
+        elif file.suffix.lower() == ".doc":
+            logging.info(f"doc_converter({file}, {_input_folder}, {_output_folder})")
+            doc_converter(file, _input_folder, _output_folder)
+
+        elif file.suffix.lower() == ".xlsx" or file.suffix.lower() == ".xls":
             logging.info(f"xlsx_converter({file}, {_input_folder}, {_output_folder})")
             xlsx_converter(file, _input_folder, _output_folder)
+        elif file.suffix.lower() == ".pdf":
+         logging.info(f"copy file({file}, {_input_folder}, {_output_folder})")
+         copy_file(file,input_folder,_output_folder)
         else:
             logging.error(f"NOT CONVERTED {file}")
 
@@ -41,35 +74,43 @@ def convert_files(_input_folder, _output_folder):
         percent = int((files_processed / total_files) * 100)
 
         logging.debug(f"Progress: {files_processed} / {total_files} files ({percent}%)")
+
+
         time.sleep(2)
 
-    logging.info("nConversion Complete!")
+
+    logging.info("\nConversion Complete!")
 
 
 if __name__ == "__main__":
-    """launch the files conversion after the detection of the file's type"""
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--folder", required=True, help="Path to the source folder")
-    parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--logfile", help="logfile")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("--logfile", help="Path to the custom log file")
     parser.add_argument("--output", help="Path to the custom output directory")
     args = parser.parse_args()
 
     log_level = logging.DEBUG if args.debug else logging.INFO
 
-    logfile = Path(args.logfile)
+
+    handlers = [logging.StreamHandler(sys.stdout)]
+
+
+    if args.logfile:
+        logfile = Path(args.logfile)
+        handlers.append(logging.FileHandler(logfile, encoding="utf-8"))
 
     logging.basicConfig(
         level=log_level,
         format='%(asctime)s | %(levelname)s: %(message)s',
-        encoding="utf-8",
-        handlers=[
-            logging.FileHandler(logfile),
-            logging.StreamHandler(sys.stdout)
-        ]
+        handlers=handlers
     )
 
-    logging.info(f"The program started. Logs are saved in: {logfile}")
+    if args.logfile:
+        logging.info(f"The program started. Logs are saved in: {args.logfile}")
+    else:
+        logging.info("The program started. No log file specified, outputting to console only.")
 
     input_folder = Path(args.folder)
 
@@ -83,10 +124,11 @@ if __name__ == "__main__":
         output_folder = input_folder.with_name(input_folder.name + "_PDF")
 
     if os.path.isdir(output_folder):
-        logging.info(f"Folder output exist. we delete it: {output_folder}")
+        logging.info(f"Folder output exists. We delete it: {output_folder}")
         shutil.rmtree(output_folder)
     else:
         logging.info(f"Folder output doesn't exist: {output_folder}")
 
     output_folder.mkdir(parents=True, exist_ok=True)
+
     convert_files(input_folder, output_folder)

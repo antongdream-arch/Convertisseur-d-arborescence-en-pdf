@@ -5,7 +5,14 @@ from reportlab.lib.pagesizes import A4
 from config_log_level import PDF_FONT, PDF_FONT_SIZE, PDF_MARGIN_LEFT, PDF_MARGIN_BOTTOM, PDF_LINE_HEIGHT
 
 def create_pdf(lines, source_file, input_folder, output_folder):
-    """create the PDF of the txt file"""
+    """
+    convert txt to pdf
+    :param lines: lines read from the source file
+    :param source_file:the source file
+    :param input_folder:The root folder containing the original text files.
+    :param output_folder:The root folder where the generated PDF files will be saved
+    :return:No value returned (the file is saved to disk)
+    """
     relative_path = source_file.relative_to(input_folder)
     pdf_file = (output_folder / relative_path).with_suffix(".pdf")
     pdf_file.parent.mkdir(parents=True, exist_ok=True)
