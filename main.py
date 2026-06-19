@@ -4,9 +4,8 @@ import argparse
 import os
 import shutil
 import time
+from check_files import check_files
 from pathlib import Path
-
-
 from converters import txt_converter, docx_converter, doc_converter, xlsx_converter, copy_file
 
 
@@ -132,3 +131,4 @@ if __name__ == "__main__":
     output_folder.mkdir(parents=True, exist_ok=True)
 
     convert_files(input_folder, output_folder)
+    check_files(input_folder, output_folder)
