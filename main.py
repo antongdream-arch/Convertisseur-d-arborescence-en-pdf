@@ -37,7 +37,6 @@ def convert_files(_input_folder, _output_folder):
     :rtype: None
     """
     valid_files = sorted([f for f in scanner(_input_folder) if f.is_file() and f.stat().st_size > 0])
-
     total_files = len(valid_files)
 
     if total_files == 0:
@@ -47,42 +46,45 @@ def convert_files(_input_folder, _output_folder):
     files_processed = 0
 
     for file in valid_files:
-        if file.suffix.lower() == ".txt":
-            logging.info(f"txt_converter({file}, {_input_folder}, {_output_folder})")
-            txt_converter(file, _input_folder, _output_folder)
+        try:
+            if file.suffix.lower() == ".txt":
+                logging.info(f"txt_converter({file}, {_input_folder}, {_output_folder})")
+                txt_converter(file, _input_folder, _output_folder)
 
-        elif file.suffix.lower() == ".docx":
-            logging.info(f"docx_converter({file}, {_input_folder}, {_output_folder})")
-            docx_converter(file, _input_folder, _output_folder)
+            elif file.suffix.lower() == ".docx":
+                logging.info(f"docx_converter({file}, {_input_folder}, {_output_folder})")
+                docx_converter(file, _input_folder, _output_folder)
 
+            elif file.suffix.lower() == ".doc":
+                logging.info(f"doc_converter({file}, {_input_folder}, {_output_folder})")
+                doc_converter(file, _input_folder, _output_folder)
 
-        elif file.suffix.lower() == ".doc":
-            logging.info(f"doc_converter({file}, {_input_folder}, {_output_folder})")
-            doc_converter(file, _input_folder, _output_folder)
+            elif file.suffix.lower() in [".xlsx", ".xls"]:
+                logging.info(f"xlsx_converter({file}, {_input_folder}, {_output_folder})")
+                xlsx_converter(file, _input_folder, _output_folder)
 
-        elif file.suffix.lower() == ".xlsx" or file.suffix.lower() == ".xls":
-            logging.info(f"xlsx_converter({file}, {_input_folder}, {_output_folder})")
-            xlsx_converter(file, _input_folder, _output_folder)
-        elif file.suffix.lower() == ".pdf":
-         logging.info(f"copy file({file}, {_input_folder}, {_output_folder})")
-         copy_file(file,input_folder,_output_folder)
-        else:
-            logging.error(f"NOT CONVERTED {file}")
+            elif file.suffix.lower() == ".pdf":
+                logging.info(f"copy file({file}, {_input_folder}, {_output_folder})")
+                copy_file(file, _input_folder, _output_folder)
 
-        files_processed += 1
-        percent = int((files_processed / total_files) * 100)
+            else:
+                logging.info(f"I can't convert this file (not the good sufix) {file}")
 
-        logging.debug(f"Progress: {files_processed} / {total_files} files ({percent}%)")
+        except Exception as e:
 
+            logging.error(f"Error processing file {file}: {e}")
+            sys.exit(1)
+        finally:
+            files_processed += 1
+            percent = int((files_processed / total_files) * 100)
+            logging.debug(f"Progress: {files_processed} / {total_files} files ({percent}%)")
 
         time.sleep(2)
-
 
     logging.info("\nConversion Complete!")
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--folder", required=True, help="Path to the source folder")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
@@ -92,9 +94,7 @@ if __name__ == "__main__":
 
     log_level = logging.DEBUG if args.debug else logging.INFO
 
-
     handlers = [logging.StreamHandler(sys.stdout)]
-
 
     if args.logfile:
         logfile = Path(args.logfile)
@@ -122,13 +122,23 @@ if __name__ == "__main__":
     else:
         output_folder = input_folder.with_name(input_folder.name + "_PDF")
 
-    if os.path.isdir(output_folder):
-        logging.info(f"Folder output exists. We delete it: {output_folder}")
-        shutil.rmtree(output_folder)
-    else:
-        logging.info(f"Folder output doesn't exist: {output_folder}")
+    try:
+        if os.path.isdir(output_folder):
+            logging.info(f"Folder output exists. We delete it: {output_folder}")
+            shutil.rmtree(output_folder)
+        else:
+            logging.info(f"Folder output doesn't exist: {output_folder}")
 
-    output_folder.mkdir(parents=True, exist_ok=True)
+        output_folder.mkdir(parents=True, exist_ok=True)
+
+    except Exception as e:
+        logging.error(f"Error setting up output folder: {e}")
+        sys.exit(1)
 
     convert_files(input_folder, output_folder)
-    check_files(input_folder, output_folder)
+
+    try:
+        check_files(input_folder, output_folder)
+    except Exception as e:
+        logging.error(f"Error during file verification: {e}")
+        sys.exit(1)

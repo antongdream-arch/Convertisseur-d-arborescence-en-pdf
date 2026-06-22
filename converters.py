@@ -16,7 +16,6 @@ def cant_convert(file):
     :return: True if the file cannot be converted, False otherwise.
     :rtype: bool
     """
-
     allowed_extensions = [".xls", ".xlsx", ".txt", ".docx", ".doc"]
 
     if file.suffix.lower() not in allowed_extensions:
@@ -38,9 +37,12 @@ def txt_converter(file, input_folder, output_folder):
     :return: No value returned.
     :rtype: None
     """
-    with open(file, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-    create_pdf(lines, file, input_folder, output_folder)
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        create_pdf(lines, file, input_folder, output_folder)
+    except Exception as e:
+        logging.error(f"Failed to convert text file {file.name}: {e}")
 
 
 def docx_converter(file, input_folder, output_folder):
@@ -66,7 +68,7 @@ def docx_converter(file, input_folder, output_folder):
         convert(str(file), str(pdf_file))
         logging.info(f"PDF generated successfully (Word .docx): {pdf_file}")
     except Exception as e:
-        logging.error(f"Failed to convert Word file {file}: {e}")
+        logging.error(f"Failed to convert Word file {file.name}: {e}")
         sys.exit(1)
 
 
@@ -99,14 +101,14 @@ def doc_converter(file, input_folder, output_folder):
 
         doc = word.Documents.Open(str(file.resolve()))
 
-
         doc.SaveAs(str(pdf_file.resolve()), FileFormat=17)
         doc.Close(False)
 
         logging.info(f"PDF generated successfully (Legacy Word .doc): {pdf_file}")
     except Exception as e:
-        logging.error(f"Failed to convert Legacy Word file {file}: {e}")
+        logging.error(f"Failed to convert Legacy Word file {file.name}: {e}")
         sys.exit(1)
+
     finally:
         if word is not None:
             word.Quit()
@@ -140,17 +142,18 @@ def xlsx_converter(file, input_folder, output_folder):
 
         wb = excel.Workbooks.Open(str(file.resolve()))
         for ws in wb.Worksheets:
-
             ws.PageSetup.Zoom = False
             ws.PageSetup.FitToPagesWide = 1
             ws.PageSetup.FitToPagesTall = 1
+
         wb.ExportAsFixedFormat(0, str(pdf_file.resolve()))
         wb.Close(False)
 
         logging.info(f"PDF generated successfully (Excel): {pdf_file}")
     except Exception as e:
-        logging.error(f"Failed to convert Excel file {file}: {e}")
+        logging.error(f"Failed to convert Excel file {file.name}: {e}")
         sys.exit(1)
+
     finally:
         if excel is not None:
             excel.Quit()
@@ -170,10 +173,13 @@ def copy_file(file, input_folder, output_folder):
     :return: No value returned.
     :rtype: None
     """
-    relative_path = file.relative_to(input_folder)
-    dest_file = output_folder / relative_path
-    dest_file.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        relative_path = file.relative_to(input_folder)
+        dest_file = output_folder / relative_path
+        dest_file.parent.mkdir(parents=True, exist_ok=True)
 
-
-    shutil.copy2(file, dest_file)
-    logging.info(f"Copied untouched file: {dest_file.name}")
+        shutil.copy2(file, dest_file)
+        logging.info(f"Copied untouched file: {dest_file.name}")
+    except Exception as e:
+        logging.error(f"Failed to copy file {file.name}: {e}")
+        sys.exit(1)
