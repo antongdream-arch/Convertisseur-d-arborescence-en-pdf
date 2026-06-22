@@ -139,6 +139,11 @@ def xlsx_converter(file, input_folder, output_folder):
         excel.DisplayAlerts = False
 
         wb = excel.Workbooks.Open(str(file.resolve()))
+        for ws in wb.Worksheets:
+
+            ws.PageSetup.Zoom = False
+            ws.PageSetup.FitToPagesWide = 1
+            ws.PageSetup.FitToPagesTall = 1
         wb.ExportAsFixedFormat(0, str(pdf_file.resolve()))
         wb.Close(False)
 
