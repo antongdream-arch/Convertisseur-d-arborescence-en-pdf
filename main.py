@@ -36,7 +36,13 @@ def convert_files(_input_folder, _output_folder):
     :return: No value returned.
     :rtype: None
     """
-    valid_files = sorted([f for f in scanner(_input_folder) if f.is_file() and f.stat().st_size > 0])
+    valid_files = sorted([
+        f for f in scanner(_input_folder)
+        if f.is_file()
+           and f.stat().st_size > 0
+           and not f.name.startswith("~$")
+           and not f.name.startswith(".")
+    ])
     total_files = len(valid_files)
 
     if total_files == 0:
