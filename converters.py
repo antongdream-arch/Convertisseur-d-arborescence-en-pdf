@@ -6,6 +6,8 @@ import win32com.client
 from docx2pdf import convert
 from txt_to_pdf import create_pdf
 
+logger = logging.getLogger("UniversalConverter")
+
 
 def cant_convert(file):
     """
@@ -19,14 +21,52 @@ def cant_convert(file):
     allowed_extensions = [".xls", ".xlsx", ".txt", ".docx", ".doc"]
 
     if file.suffix.lower() not in allowed_extensions:
-        logging.error(f"It's not a file I can convert: {file.name}")
+        logger.error(f"It's not a file I can convert: {file.name}")
         return True
     return False
 
 
+def ensure_utf8_and_read(file_path):
+    """
+    Reads a text file by testing multiple encodings.
+    If the original encoding is not UTF-8, the file is converted and rewritten in UTF-8.
+
+    :param file_path: The path to the source text file.
+    :type file_path: Path
+    :return: The lines of text from the file. Returns an empty list if decoding fails.
+    :rtype: list[str]
+    """
+    encodings_to_try = ['utf-8', 'cp1252', 'iso-8859-1']
+    content_lines = None
+    used_encoding = None
+
+    for enc in encodings_to_try:
+        try:
+            with open(file_path, 'r', encoding=enc) as f:
+                content_lines = f.readlines()
+            used_encoding = enc
+            break
+        except UnicodeDecodeError:
+            continue
+
+    if content_lines is None:
+        logger.error(f"Critical decoding failure for file: {file_path.name}")
+        return []
+
+    if used_encoding != 'utf-8':
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.writelines(content_lines)
+            logger.info(f"File converted to UTF-8: {file_path.name} (Old encoding: {used_encoding})")
+        except Exception as e:
+            logger.error(f"Error rewriting {file_path.name} in UTF-8: {e}")
+
+    return content_lines
+
+
 def txt_converter(file, input_folder, output_folder):
     """
-    Reads a text file and converts its content to a PDF document.
+    Reads a text file (ensuring UTF-8 encoding) and converts its content to a PDF document.
 
     :param file: The full path to the text file to be converted.
     :type file: Path
@@ -38,11 +78,13 @@ def txt_converter(file, input_folder, output_folder):
     :rtype: None
     """
     try:
-        with open(file, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-        create_pdf(lines, file, input_folder, output_folder)
+        lines = ensure_utf8_and_read(file)
+
+        if lines:
+            create_pdf(lines, file, input_folder, output_folder)
+
     except Exception as e:
-        logging.error(f"Failed to convert text file {file.name}: {e}")
+        logger.error(f"Failed to process text file {file.name}: {e}")
 
 
 def docx_converter(file, input_folder, output_folder):
@@ -66,10 +108,9 @@ def docx_converter(file, input_folder, output_folder):
         pdf_file.parent.mkdir(parents=True, exist_ok=True)
 
         convert(str(file), str(pdf_file))
-        logging.info(f"PDF generated successfully (Word .docx): {pdf_file}")
+        logger.info(f"PDF generated successfully (Word .docx): {pdf_file}")
     except Exception as e:
-        logging.error(f"Failed to convert Word file {file.name}: {e}")
-        sys.exit(1)
+        logger.error(f"Failed to convert Word file {file.name}: {e}")
 
 
 def doc_converter(file, input_folder, output_folder):
@@ -104,10 +145,9 @@ def doc_converter(file, input_folder, output_folder):
         doc.SaveAs(str(pdf_file.resolve()), FileFormat=17)
         doc.Close(False)
 
-        logging.info(f"PDF generated successfully (Legacy Word .doc): {pdf_file}")
+        logger.info(f"PDF generated successfully (Legacy Word .doc): {pdf_file}")
     except Exception as e:
-        logging.error(f"Failed to convert Legacy Word file {file.name}: {e}")
-        sys.exit(1)
+        logger.error(f"Failed to convert Legacy Word file {file.name}: {e}")
 
     finally:
         if word is not None:
@@ -142,17 +182,20 @@ def xlsx_converter(file, input_folder, output_folder):
 
         wb = excel.Workbooks.Open(str(file.resolve()))
         for ws in wb.Worksheets:
+            ws.PageSetup.Orientation = 2
+
+            ws.PageSetup.CenterHorizontally = True
+
             ws.PageSetup.Zoom = False
             ws.PageSetup.FitToPagesWide = 1
-            ws.PageSetup.FitToPagesTall = 1
+            ws.PageSetup.FitToPagesTall = False
 
         wb.ExportAsFixedFormat(0, str(pdf_file.resolve()))
         wb.Close(False)
 
-        logging.info(f"PDF generated successfully (Excel): {pdf_file}")
+        logger.info(f"PDF generated successfully (Excel): {pdf_file}")
     except Exception as e:
-        logging.error(f"Failed to convert Excel file {file.name}: {e}")
-        sys.exit(1)
+        logger.error(f"Failed to convert Excel file {file.name}: {e}")
 
     finally:
         if excel is not None:
@@ -179,7 +222,6 @@ def copy_file(file, input_folder, output_folder):
         dest_file.parent.mkdir(parents=True, exist_ok=True)
 
         shutil.copy2(file, dest_file)
-        logging.info(f"Copied untouched file: {dest_file.name}")
+        logger.info(f"Copied untouched file: {dest_file.name}")
     except Exception as e:
-        logging.error(f"Failed to copy file {file.name}: {e}")
-        sys.exit(1)
+        logger.error(f"Failed to copy file {file.name}: {e}")

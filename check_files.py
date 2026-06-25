@@ -2,6 +2,8 @@ import logging
 import sys
 from pathlib import Path
 
+logger = logging.getLogger("UniversalConverter")
+
 
 def check_files(input_folder, output_folder):
     """
@@ -15,24 +17,21 @@ def check_files(input_folder, output_folder):
     :return: No value returned.
     :rtype: None
     """
-
     target_extensions = [".xls", ".xlsx", ".txt", ".docx", ".doc", ".pdf"]
 
     try:
-
         target_files = [
             f for f in input_folder.rglob("*")
             if f.is_file() and f.stat().st_size > 0 and f.suffix.lower() in target_extensions
         ]
     except Exception as e:
-        logging.error(f"Verification aborted: Critical error reading input folder {input_folder}. Details: {e}")
+        logger.error(f"Verification aborted: Critical error reading input folder {input_folder}. Details: {e}")
         sys.exit(1)
-        return
 
     total_targets = len(target_files)
 
     if total_targets == 0:
-        logging.info("Verification skipped: No target files (convertible or PDF) were found.")
+        logger.info("Verification skipped: No target files (convertible or PDF) were found.")
         return
 
     success_count = 0
@@ -43,22 +42,20 @@ def check_files(input_folder, output_folder):
             relative_path = file.relative_to(input_folder)
             expected_pdf = (output_folder / relative_path).with_suffix(".pdf")
 
-
             if expected_pdf.exists():
                 success_count += 1
             else:
                 missing_files.append(file.name)
 
         except Exception as e:
-            logging.error(f"Error while verifying file {file.name}: {e}")
+            logger.error(f"Error while verifying file {file.name}: {e}")
             missing_files.append(f"{file.name} (Access/Path Error)")
-            sys.exit(1)
 
     if success_count == total_targets:
-        logging.info(f"Verification passed: All {total_targets} target files (converted and copied PDFs) are present.")
+        logger.info(f"Verification passed: All {total_targets} target files (converted and copied PDFs) are present.")
     else:
         missing_count = total_targets - success_count
-        logging.warning(f"Verification failed: {missing_count} out of {total_targets} expected PDFs are missing!")
+        logger.warning(f"Verification failed: {missing_count} out of {total_targets} expected PDFs are missing!")
 
         for missing in missing_files:
-            logging.debug(f"Missing expected PDF for original file: {missing}")
+            logger.debug(f"Missing expected PDF for original file: {missing}")
