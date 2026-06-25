@@ -1,7 +1,6 @@
 import logging
 from pathlib import Path
 
-
 PDF_FONT = "Helvetica"
 PDF_FONT_SIZE = 12
 PDF_MARGIN_LEFT = 72
@@ -28,10 +27,8 @@ def setup_configurable_logger(debug_mode=False, log_file_path=None):
     logger = logging.getLogger("UniversalConverter")
     logger.setLevel(logging.DEBUG)
 
-
     if logger.hasHandlers():
         logger.handlers.clear()
-
 
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.DEBUG if debug_mode else logging.INFO)
@@ -39,9 +36,11 @@ def setup_configurable_logger(debug_mode=False, log_file_path=None):
     console_handler.setFormatter(console_format)
     logger.addHandler(console_handler)
 
-
     if log_file_path is None:
-        log_file_path = "conversion_history.log"
+        dossier_project = Path(__file__).parent
+        dossier_logs = dossier_project / "logs"
+        dossier_logs.mkdir(exist_ok=True)
+        log_file_path = dossier_logs / "conversion_history.log"
 
     try:
         file_handler = logging.FileHandler(log_file_path, encoding="utf-8")
@@ -50,7 +49,6 @@ def setup_configurable_logger(debug_mode=False, log_file_path=None):
         file_handler.setFormatter(file_format)
         logger.addHandler(file_handler)
     except Exception as e:
-
         logger.warning(f"Failed to create log file at '{log_file_path}': {e}")
         logger.warning("Logs will only be displayed in the console.")
 

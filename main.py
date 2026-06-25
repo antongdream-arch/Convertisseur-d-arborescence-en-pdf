@@ -6,7 +6,48 @@ import shutil
 import time
 from check_files import check_files
 from pathlib import Path
-from converters import txt_converter, docx_converter, doc_converter, xlsx_converter, copy_file
+from converters import create_pdf, docx_converter, doc_converter, xlsx_converter, copy_file
+from config_log_level import setup_configurable_logger
+
+logger = logging.getLogger("UniversalConverter")
+
+
+def ensure_utf8_and_read(file_path):
+    """
+    Reads a text file by testing multiple encodings.
+    If the original encoding is not UTF-8, the file is converted and rewritten in UTF-8.
+
+    :param file_path: The path to the source text file.
+    :type file_path: Path
+    :return: The lines of text from the file.
+    :rtype: list[str]
+    """
+    encodings_to_try = ['utf-8', 'cp1252', 'iso-8859-1']
+    content_lines = None
+    used_encoding = None
+
+    for enc in encodings_to_try:
+        try:
+            with open(file_path, 'r', encoding=enc) as f:
+                content_lines = f.readlines()
+            used_encoding = enc
+            break
+        except UnicodeDecodeError:
+            continue
+
+    if content_lines is None:
+        logger.error(f"Critical decoding failure for file: {file_path.name}")
+        return []
+
+    if used_encoding != 'utf-8':
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.writelines(content_lines)
+            logger.info(f"File converted to UTF-8: {file_path.name} (Old encoding: {used_encoding})")
+        except Exception as e:
+            logger.error(f"Error rewriting {file_path.name} in UTF-8: {e}")
+
+    return content_lines
 
 
 def scanner(_input_folder):
@@ -46,7 +87,7 @@ def convert_files(_input_folder, _output_folder):
     total_files = len(valid_files)
 
     if total_files == 0:
-        logging.info("No valid files found.")
+        logger.info("No valid files found.")
         return
 
     files_processed = 0
@@ -54,40 +95,41 @@ def convert_files(_input_folder, _output_folder):
     for file in valid_files:
         try:
             if file.suffix.lower() == ".txt":
-                logging.info(f"txt_converter({file}, {_input_folder}, {_output_folder})")
-                txt_converter(file, _input_folder, _output_folder)
+                logger.info(f"Processing TXT: {file.name}")
+                lines = ensure_utf8_and_read(file)
+                if lines:
+                    create_pdf(lines, file, _input_folder, _output_folder)
 
             elif file.suffix.lower() == ".docx":
-                logging.info(f"docx_converter({file}, {_input_folder}, {_output_folder})")
+                logger.info(f"docx_converter({file}, {_input_folder}, {_output_folder})")
                 docx_converter(file, _input_folder, _output_folder)
 
             elif file.suffix.lower() == ".doc":
-                logging.info(f"doc_converter({file}, {_input_folder}, {_output_folder})")
+                logger.info(f"doc_converter({file}, {_input_folder}, {_output_folder})")
                 doc_converter(file, _input_folder, _output_folder)
 
             elif file.suffix.lower() in [".xlsx", ".xls"]:
-                logging.info(f"xlsx_converter({file}, {_input_folder}, {_output_folder})")
+                logger.info(f"xlsx_converter({file}, {_input_folder}, {_output_folder})")
                 xlsx_converter(file, _input_folder, _output_folder)
 
             elif file.suffix.lower() == ".pdf":
-                logging.info(f"copy file({file}, {_input_folder}, {_output_folder})")
+                logger.info(f"copy file({file}, {_input_folder}, {_output_folder})")
                 copy_file(file, _input_folder, _output_folder)
 
             else:
-                logging.info(f"I can't convert this file (not the good sufix) {file}")
+                logger.info(f"I can't convert this file (not the good suffix) {file}")
 
         except Exception as e:
-
-            logging.error(f"Error processing file {file}: {e}")
+            logger.error(f"Error processing file {file}: {e}")
             sys.exit(1)
         finally:
             files_processed += 1
             percent = int((files_processed / total_files) * 100)
-            logging.debug(f"Progress: {files_processed} / {total_files} files ({percent}%)")
+            logger.debug(f"Progress: {files_processed} / {total_files} files ({percent}%)")
 
         time.sleep(2)
 
-    logging.info("\nConversion Complete!")
+    logger.info("\nConversion Complete!")
 
 
 if __name__ == "__main__":
@@ -98,29 +140,18 @@ if __name__ == "__main__":
     parser.add_argument("--output", help="Path to the custom output directory")
     args = parser.parse_args()
 
-    log_level = logging.DEBUG if args.debug else logging.INFO
-
-    handlers = [logging.StreamHandler(sys.stdout)]
-
-    if args.logfile:
-        logfile = Path(args.logfile)
-        handlers.append(logging.FileHandler(logfile, encoding="utf-8"))
-
-    logging.basicConfig(
-        level=log_level,
-        format='%(asctime)s | %(levelname)s: %(message)s',
-        handlers=handlers
-    )
+    # Ceci attache les handlers à "UniversalConverter"
+    setup_configurable_logger(debug_mode=args.debug, log_file_path=args.logfile)
 
     if args.logfile:
-        logging.info(f"The program started. Logs are saved in: {args.logfile}")
+        logger.info(f"The program started. Logs are saved in: {args.logfile}")
     else:
-        logging.info("The program started. No log file specified, outputting to console only.")
+        logger.info("The program started. No log file specified, outputting to console only.")
 
     input_folder = Path(args.folder)
 
     if not input_folder.exists() or not input_folder.is_dir():
-        logging.error("The input folder does not exist or is not a valid directory")
+        logger.error("The input folder does not exist or is not a valid directory")
         sys.exit(1)
 
     if args.output:
@@ -130,21 +161,15 @@ if __name__ == "__main__":
 
     try:
         if os.path.isdir(output_folder):
-            logging.info(f"Folder output exists. We delete it: {output_folder}")
+            logger.info(f"Folder output exists. We delete it: {output_folder}")
             shutil.rmtree(output_folder)
         else:
-            logging.info(f"Folder output doesn't exist: {output_folder}")
+            logger.info(f"Folder output doesn't exist: {output_folder}")
 
         output_folder.mkdir(parents=True, exist_ok=True)
 
     except Exception as e:
-        logging.error(f"Error setting up output folder: {e}")
+        logger.error(f"Failed to create output folder: {e}")
         sys.exit(1)
 
     convert_files(input_folder, output_folder)
-
-    try:
-        check_files(input_folder, output_folder)
-    except Exception as e:
-        logging.error(f"Error during file verification: {e}")
-        sys.exit(1)

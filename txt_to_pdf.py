@@ -1,7 +1,10 @@
 import logging
-from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from config_log_level import PDF_FONT, PDF_FONT_SIZE, PDF_MARGIN_LEFT, PDF_MARGIN_BOTTOM, PDF_LINE_HEIGHT
+
+logger = logging.getLogger("UniversalConverter")
 
 
 def create_pdf(lines, source_file, input_folder, output_folder):
@@ -24,27 +27,39 @@ def create_pdf(lines, source_file, input_folder, output_folder):
         pdf_file = (output_folder / relative_path).with_suffix(".pdf")
         pdf_file.parent.mkdir(parents=True, exist_ok=True)
 
-        c = canvas.Canvas(str(pdf_file), pagesize=A4)
-        width, height = A4
+        doc = SimpleDocTemplate(
+            str(pdf_file),
+            pagesize=A4,
+            rightMargin=72,
+            leftMargin=PDF_MARGIN_LEFT,
+            topMargin=72,
+            bottomMargin=PDF_MARGIN_BOTTOM
+        )
 
+        styles = getSampleStyleSheet()
+        custom_style = ParagraphStyle(
+            'CustomStyle',
+            parent=styles['Normal'],
+            fontName=PDF_FONT,
+            fontSize=PDF_FONT_SIZE,
+            spaceAfter=4,
+        )
 
-        cursor_y = height - 72
-
-        c.setFont(PDF_FONT, PDF_FONT_SIZE)
-
+        story = []
         for line in lines:
+            clean_line = line.strip().replace('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
 
-            if cursor_y < PDF_MARGIN_BOTTOM:
-                c.showPage()
-                cursor_y = height - 72
-                c.setFont(PDF_FONT, PDF_FONT_SIZE)
+            if not clean_line:
+                story.append(Spacer(1, PDF_LINE_HEIGHT))
+                continue
 
-            clean_line = line.strip().replace('\t', '    ')
-            c.drawString(PDF_MARGIN_LEFT, cursor_y, clean_line)
-            cursor_y -= PDF_LINE_HEIGHT
+            clean_line = clean_line.replace('<', '&lt;').replace('>', '&gt;')
 
-        c.save()
-        logging.info(f"PDF generated successfully (TXT): {pdf_file.name}")
+            p = Paragraph(clean_line, custom_style)
+            story.append(p)
+
+        doc.build(story)
+        logger.info(f"PDF generated successfully (TXT): {pdf_file.name}")
 
     except Exception as e:
-        logging.error(f"Failed to generate PDF for text file {source_file.name}: {e}")
+        logger.error(f"Failed to generate PDF for text file {source_file.name}: {e}")
