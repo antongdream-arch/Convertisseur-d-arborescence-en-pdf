@@ -9,6 +9,7 @@ from pathlib import Path
 from converters import create_pdf, docx_converter, doc_converter, xlsx_converter, copy_file
 from config_log_level import setup_configurable_logger
 
+target_extensions = [".xls", ".xlsx", ".txt", ".docx", ".doc", ".pdf"]
 logger = logging.getLogger("UniversalConverter")
 
 
@@ -80,9 +81,10 @@ def convert_files(_input_folder, _output_folder):
     valid_files = sorted([
         f for f in scanner(_input_folder)
         if f.is_file()
-           and f.stat().st_size > 0
            and not f.name.startswith("~$")
            and not f.name.startswith(".")
+           and f.suffix.lower() in target_extensions
+           and f.stat().st_size > 0
     ])
     total_files = len(valid_files)
 

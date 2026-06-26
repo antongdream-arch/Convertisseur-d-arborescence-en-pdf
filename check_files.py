@@ -22,7 +22,11 @@ def check_files(input_folder, output_folder):
     try:
         target_files = [
             f for f in input_folder.rglob("*")
-            if f.is_file() and f.stat().st_size > 0 and f.suffix.lower() in target_extensions
+            if f.is_file()
+            and not f.name.startswith("~$")
+            and not f.name.startswith(".")
+            and f.suffix.lower() in target_extensions
+            and f.stat().st_size > 0
         ]
     except Exception as e:
         logger.error(f"Verification aborted: Critical error reading input folder {input_folder}. Details: {e}")
